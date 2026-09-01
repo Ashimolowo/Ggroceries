@@ -200,10 +200,11 @@
 // });
 // components/OAuthButtons.tsx
 // components/OAuthButtons.tsx
+// components/OAuthButtons.tsx
 import { useSSO } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import * as AuthSession from "expo-auth-session";
+import * as Linking from "expo-linking";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -242,8 +243,6 @@ function GoogleIcon({ size = 18 }: { size?: number }) {
   );
 }
 
-// Forces the OAuth promise to give up after `ms` milliseconds instead of
-// hanging forever if the browser/redirect handoff gets stuck.
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
@@ -257,39 +256,64 @@ export function OAuthButtons() {
   const { startSSOFlow } = useSSO();
   const router = useRouter();
 
-  // Which strategy is currently mid-flow, if any. null = idle.
   const [activeStrategy, setActiveStrategy] = useState<OAuthStrategy | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-const handleOAuth = async (strategy: OAuthStrategy) => {
-  if (activeStrategy) return;
-  setActiveStrategy(strategy);
-  setErrorMessage("");
+  const handleOAuth = async (strategy: OAuthStrategy) => {
+    if (activeStrategy) return;
+    setActiveStrategy(strategy);
+    setErrorMessage("");
 
-  try {
-    // Let Clerk handle the redirect automatically
-    const result = await withTimeout(startSSOFlow({ strategy }), 45000);
+    try {
+      // Uses expo-linking (same mechanism expo-router uses internally) so
+      // it's less likely to collide with the dev client's own root-scheme
+      // deep-link handler than a bare AuthSession redirect URI.
+      const redirectUrl = Linking.createURL("oauth-native-callback");
 
-    const { createdSessionId, setActive, signIn, signUp } = result as any;
+      const result = await withTimeout(
+        startSSOFlow({ strategy, redirectUrl }),
+        45000
+      );
 
-    if (createdSessionId && setActive) {
-      await setActive({ session: createdSessionId });
-      router.replace("/");
-      return;
+      const { createdSessionId, setActive, signIn, signUp } = result as any;
+
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        router.replace("/");
+        return;
+      }
+
+      console.warn(`${strategy}: no session created. Full result:`, JSON.stringify(result, null, 2));
+
+      if (signUp?.status && signUp.status !== "complete") {
+        console.warn(`${strategy}: signUp status =`, signUp.status);
+        setErrorMessage("Your account needs a bit more info before it's ready.");
+        return;
+      }
+
+      if (signIn?.status && signIn.status !== "complete") {
+        console.warn(`${strategy}: signIn status =`, signIn.status);
+        setErrorMessage("Additional verification is needed to sign in.");
+        return;
+      }
+
+      console.warn(`${strategy}: flow ended without a session (likely cancelled).`);
+    } catch (err: any) {
+      const message = (err?.message ?? "").toLowerCase();
+      const isCancelled = message.includes("cancel") || message.includes("dismiss");
+      const isTimeout = message.includes("timeout");
+
+      if (isTimeout) {
+        console.error(`${strategy} sign-in timed out.`);
+        setErrorMessage("Sign-in is taking too long. Please try again.");
+      } else if (!isCancelled) {
+        console.error(`${strategy} sign-in error:`, err);
+        setErrorMessage("Something went wrong signing in. Please try again.");
+      }
+    } finally {
+      setActiveStrategy(null);
     }
-
-    console.warn(`${strategy}: no session created.`, result);
-    setErrorMessage("Sign-in failed. Please try again.");
-  } catch (err: any) {
-    const message = (err?.message ?? "").toLowerCase();
-    if (!message.includes("cancel") && !message.includes("dismiss")) {
-      console.error(`${strategy} error:`, err);
-      setErrorMessage("Something went wrong. Please try again.");
-    }
-  } finally {
-    setActiveStrategy(null);
-  }
-};
+  };
 
   return (
     <View>
