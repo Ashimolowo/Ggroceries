@@ -261,35 +261,66 @@ export function OAuthButtons() {
   const [activeStrategy, setActiveStrategy] = useState<OAuthStrategy | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-const handleOAuth = async (strategy: OAuthStrategy) => {
-  if (activeStrategy) return;
-  setActiveStrategy(strategy);
-  setErrorMessage("");
+  const handleOAuth = async (strategy: OAuthStrategy) => {
+    if (activeStrategy) return; // one flow at a time, ignore taps mid-flow
+    setActiveStrategy(strategy);
+    setErrorMessage("");
 
-  try {
-    // Let Clerk handle the redirect automatically
-    const result = await withTimeout(startSSOFlow({ strategy }), 45000);
+    try {
+     const redirectUrl = AuthSession.makeRedirectUri({
+       scheme: "ggoceries",
+       path: "oauth-native-callback",
+     });
 
-    const { createdSessionId, setActive, signIn, signUp } = result as any;
+      const result = await withTimeout(
+        startSSOFlow({ strategy, redirectUrl }),
+        45000
+      );
 
-    if (createdSessionId && setActive) {
-      await setActive({ session: createdSessionId });
-      router.replace("/");
-      return;
+      const { createdSessionId, setActive, signIn, signUp } = result as any;
+
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        router.replace("/");
+        return;
+      }
+
+      // No session — inspect why instead of assuming cancellation.
+      console.warn(`${strategy}: no session created. Full result:`, JSON.stringify(result, null, 2));
+
+      if (signUp?.status && signUp.status !== "complete") {
+        console.warn(`${strategy}: signUp status =`, signUp.status);
+        console.warn(`${strategy}: signUp missing/unverified fields:`, signUp.missingFields, signUp.unverifiedFields);
+        setErrorMessage("Your account needs a bit more info before it's ready.");
+        return;
+      }
+
+      if (signIn?.status && signIn.status !== "complete") {
+        console.warn(`${strategy}: signIn status =`, signIn.status);
+        setErrorMessage("Additional verification is needed to sign in.");
+        return;
+      }
+
+      // Genuinely no signIn/signUp object and no session — this is the
+      // actual "user closed the browser" case.
+      console.warn(`${strategy}: flow ended without a session (likely cancelled).`);
+    } catch (err: any) {
+      const message = (err?.message ?? "").toLowerCase();
+      const isCancelled = message.includes("cancel") || message.includes("dismiss");
+      const isTimeout = message.includes("timeout");
+
+      if (isTimeout) {
+        console.error(`${strategy} sign-in timed out.`);
+        setErrorMessage("Sign-in is taking too long. Please try again.");
+      } else if (!isCancelled) {
+        console.error(`${strategy} sign-in error:`, err);
+        setErrorMessage("Something went wrong signing in. Please try again.");
+      }
+    } finally {
+      // Always runs — button can never get stuck spinning forever.
+      setActiveStrategy(null);
     }
-
-    console.warn(`${strategy}: no session created.`, result);
-    setErrorMessage("Sign-in failed. Please try again.");
-  } catch (err: any) {
-    const message = (err?.message ?? "").toLowerCase();
-    if (!message.includes("cancel") && !message.includes("dismiss")) {
-      console.error(`${strategy} error:`, err);
-      setErrorMessage("Something went wrong. Please try again.");
-    }
-  } finally {
-    setActiveStrategy(null);
-  }
-};
+  };
 
   return (
     <View>
