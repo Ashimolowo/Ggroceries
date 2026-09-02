@@ -200,11 +200,10 @@
 // });
 // components/OAuthButtons.tsx
 // components/OAuthButtons.tsx
-// components/OAuthButtons.tsx
 import { useSSO } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
+import * as AuthSession from "expo-auth-session";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -243,6 +242,8 @@ function GoogleIcon({ size = 18 }: { size?: number }) {
   );
 }
 
+// Forces the OAuth promise to give up after `ms` milliseconds instead of
+// hanging forever if the browser/redirect handoff gets stuck.
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
@@ -256,19 +257,20 @@ export function OAuthButtons() {
   const { startSSOFlow } = useSSO();
   const router = useRouter();
 
+  // Which strategy is currently mid-flow, if any. null = idle.
   const [activeStrategy, setActiveStrategy] = useState<OAuthStrategy | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleOAuth = async (strategy: OAuthStrategy) => {
-    if (activeStrategy) return;
+    if (activeStrategy) return; // one flow at a time, ignore taps mid-flow
     setActiveStrategy(strategy);
     setErrorMessage("");
 
     try {
-      // Uses expo-linking (same mechanism expo-router uses internally) so
-      // it's less likely to collide with the dev client's own root-scheme
-      // deep-link handler than a bare AuthSession redirect URI.
-      const redirectUrl = Linking.createURL("oauth-native-callback");
+     const redirectUrl = AuthSession.makeRedirectUri({
+       scheme: "ggoceries",
+       path: "oauth-native-callback",
+     });
 
       const result = await withTimeout(
         startSSOFlow({ strategy, redirectUrl }),
@@ -283,10 +285,12 @@ export function OAuthButtons() {
         return;
       }
 
+      // No session — inspect why instead of assuming cancellation.
       console.warn(`${strategy}: no session created. Full result:`, JSON.stringify(result, null, 2));
 
       if (signUp?.status && signUp.status !== "complete") {
         console.warn(`${strategy}: signUp status =`, signUp.status);
+        console.warn(`${strategy}: signUp missing/unverified fields:`, signUp.missingFields, signUp.unverifiedFields);
         setErrorMessage("Your account needs a bit more info before it's ready.");
         return;
       }
@@ -297,6 +301,8 @@ export function OAuthButtons() {
         return;
       }
 
+      // Genuinely no signIn/signUp object and no session — this is the
+      // actual "user closed the browser" case.
       console.warn(`${strategy}: flow ended without a session (likely cancelled).`);
     } catch (err: any) {
       const message = (err?.message ?? "").toLowerCase();
@@ -311,6 +317,7 @@ export function OAuthButtons() {
         setErrorMessage("Something went wrong signing in. Please try again.");
       }
     } finally {
+      // Always runs — button can never get stuck spinning forever.
       setActiveStrategy(null);
     }
   };

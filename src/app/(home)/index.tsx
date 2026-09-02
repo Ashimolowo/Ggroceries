@@ -40,7 +40,16 @@ export default function Home() {
           {user?.emailAddresses[0]?.emailAddress}
         </Text>
 
-        <Pressable style={styles.signOutButton} onPress={() => signOut()}>
+        <Pressable
+          style={styles.signOutButton}
+          onPress={async () => {
+            try {
+              await signOut();
+            } catch (err) {
+              console.error("Sign out error:", err);
+            }
+          }}
+        >
           <Text style={styles.signOutText}>Sign out</Text>
         </Pressable>
       </Show>
