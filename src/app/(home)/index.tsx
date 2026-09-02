@@ -1,11 +1,10 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import React from "react";
+import { UserButton } from "@clerk/expo/native";
 import { Link } from "expo-router";
-import { Show, useClerk, useUser } from "@clerk/expo";
+import { Show, useUser } from "@clerk/expo";
 
 export default function Home() {
   const { user } = useUser();
-  const { signOut } = useClerk();
 
   return (
     <View style={styles.container}>
@@ -29,29 +28,15 @@ export default function Home() {
       </Show>
 
       <Show when="signed-in">
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarInitial}>
-            {user?.emailAddresses[0]?.emailAddress?.[0]?.toUpperCase() ?? "?"}
-          </Text>
+        <View style={styles.userButtonWrap}>
+          <UserButton />
         </View>
 
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.email}>
           {user?.emailAddresses[0]?.emailAddress}
         </Text>
-
-        <Pressable
-          style={styles.signOutButton}
-          onPress={async () => {
-            try {
-              await signOut();
-            } catch (err) {
-              console.error("Sign out error:", err);
-            }
-          }}
-        >
-          <Text style={styles.signOutText}>Sign out</Text>
-        </Pressable>
+        <Text style={styles.hint}>Tap your avatar to manage your profile</Text>
       </Show>
     </View>
   );
@@ -80,21 +65,18 @@ const styles = StyleSheet.create({
   email: {
     color: "#666",
     fontSize: 15,
-    marginBottom: 20,
   },
-  avatarCircle: {
+  hint: {
+    color: "#999",
+    fontSize: 13,
+    marginTop: 4,
+  },
+  userButtonWrap: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#5b4ff5",
-    alignItems: "center",
-    justifyContent: "center",
+    overflow: "hidden",
     marginBottom: 12,
-  },
-  avatarInitial: {
-    color: "#fff",
-    fontSize: 26,
-    fontWeight: "700",
   },
   primaryButton: {
     backgroundColor: "#5b4ff5",
@@ -123,21 +105,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: "#111",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  signOutButton: {
-    borderWidth: 1,
-    borderColor: "#fdecea",
-    backgroundColor: "#fdecea",
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    alignItems: "center",
-    width: "100%",
-  },
-  signOutText: {
-    color: "#c0392b",
     fontSize: 16,
     fontWeight: "600",
   },
