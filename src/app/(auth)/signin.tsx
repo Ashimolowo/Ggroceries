@@ -135,7 +135,7 @@ export default function SignInScreen() {
   // Trust code verification screen
   if (needsTrustCode) {
     return (
-      <SafeAreaView className="flex-1 bg-primary dark:bg-secondary px-6 py-8">
+      <SafeAreaView className="flex-1 bg-primary dark:bg-secondary px-6 py-8" edges={["top"]}>
         <View className="flex-1 justify-center">
           <Text className="text-center text-2xl font-bold text-primary-foreground dark:text-foreground mb-2">
             Verify This Device
@@ -221,7 +221,8 @@ export default function SignInScreen() {
       {/* Auth Section */}
       <View className="mt-8 flex-1 rounded-t-[36px] bg-card">
         <ScrollView
-          className="px-6 pb-8 pt-6"
+          className="px-6 pt-6"
+          contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
         >
           <View className="self-center rounded-full bg-secondary px-3 py-1">
@@ -248,7 +249,7 @@ export default function SignInScreen() {
                 style={{ width: 20, height: 20 }}
               />
             </View>
-            <Text className="ml-3 flex-1 text-base font-semibold text-foreground">
+            <Text className="ml-3 flex-1 text-base font-semibold text-secondary">
               {loadingStrategy === "oauth_google" ? "Connecting.." : "Google"}
             </Text>
             <FontAwesome name="chevron-right" color={"#999"} size={16} />
@@ -264,7 +265,7 @@ export default function SignInScreen() {
             <View className="h-8 w-8 items-center justify-center rounded-full bg-white">
               <FontAwesome name="github" size={20} color={"#111"} />
             </View>
-            <Text className="ml-3 flex-1 text-base font-semibold text-foreground">
+            <Text className="ml-3 flex-1 text-base font-semibold text-secondary">
               {loadingStrategy === "oauth_github" ? "Connecting.." : "GitHub"}
             </Text>
             <FontAwesome name="chevron-right" color={"#999"} size={16} />
@@ -284,8 +285,8 @@ export default function SignInScreen() {
             Email Address
           </Text>
           <TextInput
-            className="h-12 border border-border rounded-lg px-3 mb-4 text-foreground bg-white"
             placeholder="your@email.com"
+            placeholderTextColor="#999"
             value={emailAddress}
             onChangeText={(text) => {
               setEmailAddress(text);
@@ -294,16 +295,37 @@ export default function SignInScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             editable={!isLoading}
+            style={{
+              height: 48,
+              borderWidth: 1,
+              borderColor: "#e5e5e5",
+              borderRadius: 8,
+              paddingHorizontal: 12,
+              marginBottom: 16,
+              color: "#000",
+              backgroundColor: "#fff",
+              fontSize: 15,
+            }}
           />
 
           {/* Password Input */}
           <Text className="text-sm font-semibold text-foreground mb-2">
             Password
           </Text>
-          <View className="flex-row items-center border border-border rounded-lg mb-4 bg-white">
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              borderWidth: 1,
+              borderColor: "#e5e5e5",
+              borderRadius: 8,
+              marginBottom: 16,
+              backgroundColor: "#fff",
+            }}
+          >
             <TextInput
-              className="flex-1 h-12 px-3 text-foreground"
               placeholder="Enter password"
+              placeholderTextColor="#999"
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
@@ -312,9 +334,16 @@ export default function SignInScreen() {
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               editable={!isLoading}
+              style={{
+                flex: 1,
+                height: 48,
+                paddingHorizontal: 12,
+                color: "#000",
+                fontSize: 15,
+              }}
             />
             <Pressable
-              className="px-3"
+              style={{ paddingHorizontal: 12 }}
               onPress={() => setShowPassword(!showPassword)}
             >
               <FontAwesome
@@ -359,6 +388,9 @@ export default function SignInScreen() {
             </Pressable>
           </View>
         </ScrollView>
+        <Text className="mt-3 text-center text-sm leading-5 text-muted-foreground">
+          By continuing, you agree to our Terms and Privacy Policy
+        </Text>
       </View>
     </SafeAreaView>
   );
