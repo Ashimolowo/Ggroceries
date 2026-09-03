@@ -3,13 +3,23 @@ import { useAuth } from "@clerk/expo";
 import { Redirect, Stack } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import {useColorScheme} from "nativewind";
+import { useGgoceriesStore } from "@/store/ggoceries-store";
+import { useEffect } from "react";
 
 export default function TabsLayout() {
   const { isSignedIn, isLoaded } = useAuth();
 
+  const {loadItems, items} = useGgoceriesStore()
+
   const {colorScheme} = useColorScheme()
   const isDark = colorScheme === "dark"
   const tabTintColor = isDark ? "hsl(142 70% 54%)" : "hsl(147 75% 33%)"
+ 
+ useEffect(() => {
+  loadItems()
+ }, [])
+
+ console.log("{ITEMS}", items)
   if (!isLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
