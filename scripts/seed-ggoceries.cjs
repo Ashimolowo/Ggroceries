@@ -1,8 +1,7 @@
 const { neon } = require("@neondatabase/serverless");
 const crypto = require("node:crypto");
 
-const databaseUrl =
-  "postgresql://neondb_owner:npg_begLPHQw3M1T@ep-raspy-wind-ae9jbfn9-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   throw new Error(
