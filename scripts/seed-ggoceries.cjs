@@ -1,6 +1,7 @@
 const { neon } = require("@neondatabase/serverless");
 const crypto = require("node:crypto");
 
+//you can manually paste the databaseurl here if it is failing
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {

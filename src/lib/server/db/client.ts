@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/neon-http";
 
 const schema = {}
 
+//you can manually paste the databaseurl here if it is failing
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
