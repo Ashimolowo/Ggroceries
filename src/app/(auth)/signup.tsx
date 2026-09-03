@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { getFriendlyErrorMessage, getUnexpectedErrorMessage } from "../utils";
+import { FormError } from "@/components/FormError";
 
 export default function SignUpScreen() {
   const { signUp, fetchStatus } = useSignUp();
@@ -101,7 +102,7 @@ export default function SignUpScreen() {
         return;
       }
 
-      router.replace("/(home)");
+      router.replace("/(tabs)");
     } catch (err) {
       console.error("Unexpected verify error:", err);
       setVerifyErrorMessage(getUnexpectedErrorMessage());
@@ -320,11 +321,7 @@ export default function SignUpScreen() {
         </View>
 
         {/* Error Message */}
-        {errorMessage ? (
-          <View className="bg-destructive/10 border border-destructive rounded-lg p-3 mb-4">
-            <Text className="text-destructive text-sm">{errorMessage}</Text>
-          </View>
-        ) : null}
+        <FormError message={errorMessage} />
 
         {/* Sign Up Button */}
         <Pressable
