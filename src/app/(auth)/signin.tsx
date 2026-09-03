@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { FontAwesome } from "@expo/vector-icons";
 import { getFriendlyErrorMessage, getUnexpectedErrorMessage } from "../utils";
+import { FormError } from "@/components/FormError";
 
 export default function SignInScreen() {
   const { signIn, fetchStatus } = useSignIn();
@@ -81,7 +82,7 @@ export default function SignInScreen() {
         return;
       }
 
-      router.replace("/(home)");
+      router.replace("/(tabs)");
     } catch (err) {
       console.error("Unexpected sign in error:", err);
       setErrorMessage(getUnexpectedErrorMessage());
@@ -123,7 +124,7 @@ export default function SignInScreen() {
         return;
       }
 
-      router.replace("/(home)");
+      router.replace("/(tabs)");
     } catch (err) {
       console.error("Unexpected trust verification error:", err);
       setErrorMessage(getUnexpectedErrorMessage());
@@ -135,7 +136,10 @@ export default function SignInScreen() {
   // Trust code verification screen
   if (needsTrustCode) {
     return (
-      <SafeAreaView className="flex-1 bg-primary dark:bg-secondary px-6 py-8" edges={["top"]}>
+      <SafeAreaView
+        className="flex-1 bg-primary dark:bg-secondary px-6 py-8"
+        edges={["top"]}
+      >
         <View className="flex-1 justify-center">
           <Text className="text-center text-2xl font-bold text-primary-foreground dark:text-foreground mb-2">
             Verify This Device
@@ -157,11 +161,7 @@ export default function SignInScreen() {
             editable={!isLoading}
           />
 
-          {errorMessage ? (
-            <View className="bg-destructive/10 border border-destructive rounded-lg p-3 mb-4">
-              <Text className="text-destructive text-sm">{errorMessage}</Text>
-            </View>
-          ) : null}
+          <FormError message={errorMessage} />
 
           <Pressable
             className="h-14 bg-primary rounded-2xl justify-center items-center mb-4"
@@ -355,11 +355,7 @@ export default function SignInScreen() {
           </View>
 
           {/* Error Message */}
-          {errorMessage ? (
-            <View className="bg-destructive/10 border border-destructive rounded-lg p-3 mb-4">
-              <Text className="text-destructive text-sm">{errorMessage}</Text>
-            </View>
-          ) : null}
+          <FormError message={errorMessage} />
 
           {/* Sign In Button */}
           <Pressable
