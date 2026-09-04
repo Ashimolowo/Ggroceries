@@ -18,7 +18,7 @@ const ListHeroCard = () => {
       </Text>
 
       <Text className="mt-1 text-3xl font-extrabold text-primary-foreground">
-        Your Grocery Board
+        Your Ggoceries Board
       </Text>
 
       <Text className="mt-1 text-sm text-primary-foreground/80">
