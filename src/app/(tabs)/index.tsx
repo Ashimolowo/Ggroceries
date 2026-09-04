@@ -1,111 +1,29 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
 import { UserButton } from "@clerk/expo/native";
 import { Link } from "expo-router";
 import { Show, useUser } from "@clerk/expo";
+import TabScreenBackground from "@/components/TabScreenBackground";
+import ListHeroCard from "@/components/list/ListHeroCard";
+import { useGgoceriesStore } from "@/store/ggoceries-store";
+import PendingItemCard from "@/components/list/PendingItemCard";
 
 export default function Home() {
-  const { user } = useUser();
+const {items} = useGgoceriesStore()
 
+const pendingItems = items.filter((item) => !item.purchased)
   return (
-    <View style={styles.container}>
-      <Show when="signed-out">
-        <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.description}>
-          Sign in to your account or create a new one to get started.
-        </Text>
+    <ScrollView className="flex-1 bg-background py-4" showsVerticalScrollIndicator={false} contentContainerStyle={{padding: 20, gap:14}}>
+        <TabScreenBackground />
+        <ListHeroCard />
 
-        <Link href={"/(auth)/signin"} asChild>
-          <Pressable style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>Sign in</Text>
-          </Pressable>
-        </Link>
-
-        <Link href={"/(auth)/signup"} asChild>
-          <Pressable style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>Sign up</Text>
-          </Pressable>
-        </Link>
-      </Show>
-
-      <Show when="signed-in">
-        <View style={styles.userButtonWrap}>
-          <UserButton />
+        <View className="flex-row items-center justify-between px-1">
+          <Text className="text-sm font-semibold uppercase tracking-[1px] text-muted-foreground">Shopping items</Text>
         </View>
 
-        <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.email}>
-          {user?.emailAddresses[0]?.emailAddress}
-        </Text>
-        <Text style={styles.hint}>Tap your avatar to manage your profile</Text>
-      </Show>
-    </View>
+        {pendingItems.map(item => <PendingItemCard key={item.id} item={item}/>)}
+    </ScrollView>
+     
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    gap: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    textAlign: "center",
-    color: "#111",
-  },
-  description: {
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 12,
-    fontSize: 15,
-  },
-  email: {
-    color: "#666",
-    fontSize: 15,
-  },
-  hint: {
-    color: "#999",
-    fontSize: 13,
-    marginTop: 4,
-  },
-  userButtonWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    overflow: "hidden",
-    marginBottom: 12,
-  },
-  primaryButton: {
-    backgroundColor: "#5b4ff5",
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    alignItems: "center",
-    width: "100%",
-    marginTop: 8,
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    alignItems: "center",
-    width: "100%",
-    marginTop: 10,
-    backgroundColor: "#fff",
-  },
-  secondaryButtonText: {
-    color: "#111",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
+
