@@ -1,11 +1,32 @@
-import { View, Text } from 'react-native'
+import ClearCompletedButton from "@/components/insights/ClearCompleteButton";
+import InsightsCategorySection from "@/components/insights/InsightsCategorySection";
+import InsightsPrioritySection from "@/components/insights/InsightssPrioritySection";
+import InsightsStatsSection from "@/components/insights/InsightsStasSection";
+import UserProfile from "@/components/insights/UserProfile";
+import TabScreenBackground from "@/components/TabScreenBackground";
+import { ScrollView } from "react-native";
 
-const insights = () => {
+const InsightsScreen = () => {
   return (
-    <View>
-      <Text className='text-white'>insights</Text>
-    </View>
-  )
-}
+    <>
+      <ScrollView
+        className="flex-1 bg-background py-4"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: 20, gap: 14 }}
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        <TabScreenBackground />
 
-export default insights
+        <UserProfile />
+        <InsightsStatsSection />
+        <InsightsCategorySection />
+        <InsightsPrioritySection />
+        <ClearCompletedButton />
+      </ScrollView>
+
+      {/* <SentryFeedbackButton /> */}
+    </>
+  );
+};
+
+export default InsightsScreen;
