@@ -2,6 +2,7 @@ import ClearCompletedButton from "@/components/insights/ClearCompleteButton";
 import InsightsCategorySection from "@/components/insights/InsightsCategorySection";
 import InsightsPrioritySection from "@/components/insights/InsightssPrioritySection";
 import InsightsStatsSection from "@/components/insights/InsightsStasSection";
+import SentryFeedbackButton from "@/components/insights/SentryFeedbackButton";
 import UserProfile from "@/components/insights/UserProfile";
 import TabScreenBackground from "@/components/TabScreenBackground";
 import { ScrollView } from "react-native";
@@ -24,7 +25,7 @@ const InsightsScreen = () => {
         <ClearCompletedButton />
       </ScrollView>
 
-      {/* <SentryFeedbackButton /> */}
+      <SentryFeedbackButton />
     </>
   );
 };
