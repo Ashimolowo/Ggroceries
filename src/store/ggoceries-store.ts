@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export type GgoceriesCategory =
-  "Produce" | "Diary" | "Bakery" | "Pantry" | "Snacks";
+  "Produce" | "Dairy" | "Bakery" | "Pantry" | "Snacks";
 export type GgoceriesPriority = "low" | "medium" | "high";
 
 export type GgoceriesItem = {
