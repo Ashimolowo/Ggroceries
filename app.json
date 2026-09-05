@@ -36,7 +36,15 @@
       ],
       "@clerk/expo",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "ggoceries",
+          "organization": "shaybah"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
