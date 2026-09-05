@@ -8,8 +8,8 @@ import {
   TextInput,
   View,
   Pressable,
-  ScrollView,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome } from "@expo/vector-icons";
 import { getFriendlyErrorMessage, getUnexpectedErrorMessage } from "../utils";
@@ -114,8 +114,18 @@ export default function SignUpScreen() {
   // Email verification screen
   if (isVerifying) {
     return (
-      <SafeAreaView className="flex-1 bg-primary dark:bg-secondary px-6 py-8">
-        <View className="flex-1 justify-center">
+      <SafeAreaView className="flex-1 bg-primary dark:bg-secondary">
+        <KeyboardAwareScrollView
+          bottomOffset={40}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            paddingHorizontal: 24,
+            paddingVertical: 32,
+          }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text className="text-center text-2xl font-bold text-primary-foreground dark:text-foreground mb-2">
             Verify Email
           </Text>
@@ -136,13 +146,7 @@ export default function SignUpScreen() {
             editable={!isLoading}
           />
 
-          {verifyErrorMessage ? (
-            <View className="bg-destructive/10 border border-destructive rounded-lg p-3 mb-4">
-              <Text className="text-destructive text-sm">
-                {verifyErrorMessage}
-              </Text>
-            </View>
-          ) : null}
+          <FormError message={verifyErrorMessage} />
 
           <Pressable
             className="h-14 bg-primary rounded-2xl justify-center items-center mb-4"
@@ -168,190 +172,190 @@ export default function SignUpScreen() {
               Back to Sign Up
             </Text>
           </Pressable>
-        </View>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     );
   }
 
   // Main sign-up screen
   return (
-    <SafeAreaView className="flex-1 bg-card">
-      <ScrollView
-        style={{ paddingHorizontal: 24, paddingTop: 24 }}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
+    // <SafeAreaView className="flex-1 bg-card">
+    <KeyboardAwareScrollView
+      className="flex-1 bg-card"
+      bottomOffset={40}
+      style={{ paddingHorizontal: 24, paddingTop: 24 }}
+      contentContainerStyle={{ paddingBottom: 100 }}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* Back Button */}
+      <Pressable onPress={() => router.back()} className="mb-4">
+        <FontAwesome name="chevron-left" size={24} color={"#000"} />
+      </Pressable>
+
+      {/* Header */}
+      <Text className="text-3xl font-bold text-foreground mb-1">
+        Create Account
+      </Text>
+      <Text className="text-muted-foreground text-sm mb-6">
+        Join us for healthy shopping
+      </Text>
+
+      {/* OAuth Section */}
+      <Text className="text-xs font-semibold uppercase text-muted-foreground mb-3">
+        Quick Sign Up
+      </Text>
+
+      <Pressable
+        className={`mb-2 h-12 flex-row items-center justify-center rounded-xl border border-border bg-white px-4 active:opacity-90 ${
+          loadingStrategy === "oauth_google" ? "opacity-70" : ""
+        }`}
+        disabled={loadingStrategy === "oauth_google"}
+        onPress={() => handleSocialAuth("oauth_google")}
       >
-        {/* Back Button */}
-        <Pressable onPress={() => router.back()} className="mb-4">
-          <FontAwesome name="chevron-left" size={24} color={"#000"} />
-        </Pressable>
-
-        {/* Header */}
-        <Text className="text-3xl font-bold text-foreground mb-1">
-          Create Account
+        <FontAwesome name="google" size={18} color={"#DB4437"} />
+        <Text className="ml-2 flex-1 text-sm font-semibold text-secondary">
+          {loadingStrategy === "oauth_google" ? "Connecting.." : "Google"}
         </Text>
-        <Text className="text-muted-foreground text-sm mb-6">
-          Join us for healthy shopping
+      </Pressable>
+
+      <Pressable
+        className={`mb-4 h-12 flex-row items-center justify-center rounded-xl border border-border bg-white px-4 active:opacity-90 ${
+          loadingStrategy === "oauth_github" ? "opacity-70" : ""
+        }`}
+        disabled={loadingStrategy === "oauth_github"}
+        onPress={() => handleSocialAuth("oauth_github")}
+      >
+        <FontAwesome name="github" size={18} color={"#111"} />
+        <Text className="ml-2 flex-1 text-sm font-semibold text-secondary">
+          {loadingStrategy === "oauth_github" ? "Connecting.." : "GitHub"}
         </Text>
+      </Pressable>
 
-        {/* OAuth Section */}
-        <Text className="text-xs font-semibold uppercase text-muted-foreground mb-3">
-          Quick Sign Up
-        </Text>
+      {/* Divider */}
+      <View className="flex-row items-center my-4">
+        <View className="flex-1 h-px bg-border" />
+        <Text className="mx-2 text-xs text-muted-foreground">or</Text>
+        <View className="flex-1 h-px bg-border" />
+      </View>
 
-        <Pressable
-          className={`mb-2 h-12 flex-row items-center justify-center rounded-xl border border-border bg-white px-4 active:opacity-90 ${
-            loadingStrategy === "oauth_google" ? "opacity-70" : ""
-          }`}
-          disabled={loadingStrategy === "oauth_google"}
-          onPress={() => handleSocialAuth("oauth_google")}
-        >
-          <FontAwesome name="google" size={18} color={"#DB4437"} />
-          <Text className="ml-2 flex-1 text-sm font-semibold text-secondary">
-            {loadingStrategy === "oauth_google" ? "Connecting.." : "Google"}
-          </Text>
-        </Pressable>
+      {/* Email Input */}
+      <Text
+        style={{
+          fontSize: 14,
+          fontWeight: "600",
+          marginBottom: 8,
+          color: "#000",
+        }}
+      >
+        Email Address
+      </Text>
+      <TextInput
+        placeholder="your@email.com"
+        placeholderTextColor="#999"
+        value={emailAddress}
+        onChangeText={(text) => {
+          setEmailAddress(text);
+          if (errorMessage) setErrorMessage("");
+        }}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        editable={!isLoading}
+        style={{
+          height: 48,
+          borderWidth: 1,
+          borderColor: "#e5e5e5",
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          marginBottom: 16,
+          color: "#000",
+          backgroundColor: "#fff",
+          fontSize: 15,
+        }}
+      />
 
-        <Pressable
-          className={`mb-4 h-12 flex-row items-center justify-center rounded-xl border border-border bg-white px-4 active:opacity-90 ${
-            loadingStrategy === "oauth_github" ? "opacity-70" : ""
-          }`}
-          disabled={loadingStrategy === "oauth_github"}
-          onPress={() => handleSocialAuth("oauth_github")}
-        >
-          <FontAwesome name="github" size={18} color={"#111"} />
-          <Text className="ml-2 flex-1 text-sm font-semibold text-secondary">
-            {loadingStrategy === "oauth_github" ? "Connecting.." : "GitHub"}
-          </Text>
-        </Pressable>
-
-        {/* Divider */}
-        <View className="flex-row items-center my-4">
-          <View className="flex-1 h-px bg-border" />
-          <Text className="mx-2 text-xs text-muted-foreground">or</Text>
-          <View className="flex-1 h-px bg-border" />
-        </View>
-
-        {/* Email Input */}
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "600",
-            marginBottom: 8,
-            color: "#000",
-          }}
-        >
-          Email Address
-        </Text>
+      {/* Password Input */}
+      <Text
+        style={{
+          fontSize: 14,
+          fontWeight: "600",
+          marginBottom: 8,
+          color: "#000",
+        }}
+      >
+        Password
+      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          borderWidth: 1,
+          borderColor: "#e5e5e5",
+          borderRadius: 8,
+          marginBottom: 16,
+          backgroundColor: "#fff",
+        }}
+      >
         <TextInput
-          placeholder="your@email.com"
+          placeholder="Create password (min 8 chars)"
           placeholderTextColor="#999"
-          value={emailAddress}
+          value={password}
           onChangeText={(text) => {
-            setEmailAddress(text);
+            setPassword(text);
             if (errorMessage) setErrorMessage("");
           }}
-          keyboardType="email-address"
+          secureTextEntry={!showPassword}
           autoCapitalize="none"
           editable={!isLoading}
           style={{
+            flex: 1,
             height: 48,
-            borderWidth: 1,
-            borderColor: "#e5e5e5",
-            borderRadius: 8,
             paddingHorizontal: 12,
-            marginBottom: 16,
             color: "#000",
-            backgroundColor: "#fff",
             fontSize: 15,
           }}
         />
-
-        {/* Password Input */}
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "600",
-            marginBottom: 8,
-            color: "#000",
-          }}
-        >
-          Password
-        </Text>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            borderWidth: 1,
-            borderColor: "#e5e5e5",
-            borderRadius: 8,
-            marginBottom: 16,
-            backgroundColor: "#fff",
-          }}
-        >
-          <TextInput
-            placeholder="Create password (min 8 chars)"
-            placeholderTextColor="#999"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              if (errorMessage) setErrorMessage("");
-            }}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            editable={!isLoading}
-            style={{
-              flex: 1,
-              height: 48,
-              paddingHorizontal: 12,
-              color: "#000",
-              fontSize: 15,
-            }}
-          />
-          <Pressable
-            style={{ paddingHorizontal: 12 }}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <FontAwesome
-              name={showPassword ? "eye" : "eye-slash"}
-              size={16}
-              color={"#999"}
-            />
-          </Pressable>
-        </View>
-
-        {/* Error Message */}
-        <FormError message={errorMessage} />
-
-        {/* Sign Up Button */}
         <Pressable
-          className="h-12 bg-primary rounded-xl justify-center items-center mb-4"
-          disabled={isLoading || !emailAddress || !password}
-          onPress={handleSignUp}
+          style={{ paddingHorizontal: 12 }}
+          onPress={() => setShowPassword(!showPassword)}
         >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="text-white font-semibold">Create Account</Text>
-          )}
+          <FontAwesome
+            name={showPassword ? "eye" : "eye-slash"}
+            size={16}
+            color={"#999"}
+          />
         </Pressable>
+      </View>
 
-        {/* Navigation to Sign In */}
-        <View className="flex-row justify-center">
-          <Text className="text-muted-foreground text-sm">
-            Already have an account?{" "}
-          </Text>
-          <Pressable onPress={() => router.push("/signin")}>
-            <Text className="text-primary font-semibold text-sm">Sign In</Text>
-          </Pressable>
-        </View>
+      <FormError message={errorMessage} />
 
-        <View nativeID="clerk-captcha" />
-      </ScrollView>
+      <Pressable
+        className="h-12 bg-primary rounded-xl justify-center items-center mb-4"
+        disabled={isLoading || !emailAddress || !password}
+        onPress={handleSignUp}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text className="text-white font-semibold">Create Account</Text>
+        )}
+      </Pressable>
 
-      <Text className="mt-3 text-center text-sm leading-5 text-muted-foreground">
+      <View className="flex-row justify-center">
+        <Text className="text-muted-foreground text-sm">
+          Already have an account?{" "}
+        </Text>
+        <Pressable onPress={() => router.push("/signin")}>
+          <Text className="text-primary font-semibold text-sm">Sign In</Text>
+        </Pressable>
+      </View>
+
+      <View nativeID="clerk-captcha" />
+
+      <Text className="mt-6 text-center text-sm leading-5 text-muted-foreground">
         By continuing, you agree to our Terms and Privacy Policy
       </Text>
-    </SafeAreaView>
+    </KeyboardAwareScrollView>
+    // </SafeAreaView>
   );
 }
